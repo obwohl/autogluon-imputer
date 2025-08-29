@@ -17,7 +17,7 @@ class AutoGluonImputer:
     and then imputes them. This process is repeated until all missing values
     in the DataFrame are imputed.
     """
-    def __init__(self, time=25, quality="medium_quality"):
+    def __init__(self, time=25, quality="medium_quality", verbosity=0):
         """
         Initializes the AutoGluonImputer.
 
@@ -28,11 +28,15 @@ class AutoGluonImputer:
             Defaults to 25.
         quality : str, optional
             The quality level of the model training process. Accepted values are
-            "medium_quality", "good_quality", "high_quality", "best_quality".
+            "low_quality", "medium_quality", "good_quality", "high_quality", "best_quality".
             Defaults to "medium_quality".
+        verbosity : int, optional
+            Verbosity level of AutoGluon. Can be 0, 1, 2, 3, or 4.
+            Defaults to 0.
         """
         self.time = time
         self.quality = quality
+        self.verbosity = verbosity
 
     def impute(self, df):
         """
@@ -59,8 +63,10 @@ class AutoGluonImputer:
         if cols_to_exclude:
             logging.info(f"Excluding columns with high cardinality: {cols_to_exclude}")
 
+        cols_to_impute = [col for col in df.columns if col not in cols_to_exclude]
+
         while True:
-            nan_counts = df_imputed.drop(columns=cols_to_exclude, errors='ignore').isna().sum()
+            nan_counts = df_imputed[cols_to_impute].isna().sum()
             nan_counts = nan_counts[nan_counts > 0]
 
             if nan_counts.empty:
@@ -109,7 +115,7 @@ class AutoGluonImputer:
         autogluon_df = TabularDataset(df)
 
         predictor = TabularPredictor(
-            label=column, verbosity=0, problem_type=problem_type, eval_metric=eval_metric
+            label=column, verbosity=self.verbosity, problem_type=problem_type, eval_metric=eval_metric
         ).fit(autogluon_df, presets=self.quality, time_limit=self.time)
 
         metrics = predictor.evaluate(autogluon_df, silent=True)
