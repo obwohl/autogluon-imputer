@@ -4,6 +4,7 @@ import logging
 import argparse
 import time
 from src.autogluon_imputer import AutoGluonImputer
+from src.advanced_imputer import AdvancedImputer
 from tests.test_utils import (
     load_titanic_dataset,
     load_adult_dataset,
@@ -19,7 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def run_benchmark(dataset_name, mechanism, quality, verbosity, time_limit):
+def run_benchmark(dataset_name, mechanism, quality, verbosity, time_limit, imputer_to_test="AutoGluon", iterations=3):
     """
     Runs a benchmark comparison of different imputation methods on a specific dataset and missing data mechanism.
     """
@@ -55,16 +56,20 @@ def run_benchmark(dataset_name, mechanism, quality, verbosity, time_limit):
     df_missing = introduce_missing_values(df_encoded, mechanism=mechanism, missing_fraction=0.2)
 
     imputers = {
-        "AutoGluon": AutoGluonImputer(quality=quality, verbosity=verbosity, time=time_limit),
         "Mean": SimpleImputer(strategy='mean'),
         "KNN": KNNImputer(),
         "MICE": IterativeImputer(max_iter=10, random_state=0)
     }
+    if imputer_to_test == "AutoGluon":
+        imputers["AutoGluon"] = AutoGluonImputer(quality=quality, verbosity=verbosity, time=time_limit)
+    elif imputer_to_test == "Advanced":
+        imputers["Advanced"] = AdvancedImputer(quality=quality, verbosity=verbosity, time=time_limit)
+
 
     for name, imputer in imputers.items():
         print(f"Running {name} imputer...")
         start_time = time.time()
-        if name == "AutoGluon":
+        if name in ["AutoGluon", "Advanced"]:
             df_imputed = imputer.impute(df_missing)
         else:
             df_imputed_values = imputer.fit_transform(df_missing)
@@ -120,5 +125,7 @@ if __name__ == '__main__':
     parser.add_argument("--quality", help="The quality setting for the AutoGluon imputer.", default="medium_quality", choices=["low_quality", "medium_quality", "good_quality", "high_quality", "best_quality"])
     parser.add_argument("--verbosity", help="The verbosity level for the AutoGluon imputer.", type=int, default=0, choices=[0, 1, 2, 3, 4])
     parser.add_argument("--time_limit", help="The time limit for the AutoGluon imputer.", type=int, default=25)
+    parser.add_argument("--imputer_to_test", help="The imputer to test.", default="AutoGluon", choices=["AutoGluon", "Advanced"])
+    parser.add_argument("--iterations", help="The number of iterations for the AdvancedImputer.", type=int, default=3)
     args = parser.parse_args()
-    run_benchmark(args.dataset, args.mechanism, args.quality, args.verbosity, args.time_limit)
+    run_benchmark(args.dataset, args.mechanism, args.quality, args.verbosity, args.time_limit, args.imputer_to_test, args.iterations)

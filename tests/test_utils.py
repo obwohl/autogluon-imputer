@@ -24,10 +24,12 @@ def load_abalone_dataset():
 
 def load_breast_cancer_dataset():
     """
-    Loads the Breast Cancer Wisconsin (Diagnostic) dataset from scikit-learn.
+    Loads the Breast Cancer Wisconsin (Diagnostic) dataset from the data directory.
     """
-    data = load_breast_cancer(as_frame=True)
-    return data.frame
+    df = pd.read_csv('data/breast-cancer-wisconsin.data', header=None)
+    df.columns = ['id', 'clump_thickness', 'unif_cell_size', 'unif_cell_shape', 'marg_adhesion', 'single_epith_cell_size', 'bare_nuclei', 'bland_chrom', 'norm_nucleoli', 'mitoses', 'class']
+    df = df.drop(columns=['id'])
+    return df
 
 def MAR_mask(X, p, p_obs):
     """
