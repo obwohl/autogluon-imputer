@@ -58,8 +58,11 @@ class AutoGluonImputer:
         df_imputed = df.copy()
         logging.info("Starting imputation process.")
 
-        # Exclude columns with high cardinality
-        cols_to_exclude = [col for col in df.columns if df[col].count() > 0 and df[col].nunique() / df[col].count() > 0.95]
+        # Exclude high-cardinality object columns
+        cols_to_exclude = [
+            col for col in df.columns
+            if df[col].dtype == 'object' and df[col].count() > 0 and df[col].nunique() / df[col].count() > 0.95
+        ]
         if cols_to_exclude:
             logging.info(f"Excluding columns with high cardinality: {cols_to_exclude}")
 
