@@ -1,8 +1,21 @@
+"""This script downloads the datasets used in the benchmark.
+
+It currently downloads the Adult Income and Abalone datasets from the UCI
+Machine Learning Repository.
+"""
 import os
 import subprocess
 
 def download_file(url, out_path):
-    """Downloads a file."""
+    """Downloads a file from a URL to a specified path.
+
+    This function checks if the file already exists at the output path and
+    skips the download if it does.
+
+    Args:
+        url (str): The URL of the file to download.
+        out_path (str): The local path where the file should be saved.
+    """
     if not os.path.exists(out_path):
         print(f"Downloading {url} to {out_path}...")
         subprocess.run(["wget", "-O", out_path, url])

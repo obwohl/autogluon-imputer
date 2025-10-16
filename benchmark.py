@@ -1,3 +1,11 @@
+"""This script provides a benchmarking framework to evaluate imputation methods.
+
+It allows for comparing the performance of the `AutoGluonImputer` and
+`AdvancedImputer` against standard imputation techniques from scikit-learn,
+such as SimpleImputer (Mean), KNNImputer, and IterativeImputer (MICE). The
+script can be configured to run on different datasets and with various missing
+data mechanisms.
+"""
 import pandas as pd
 import numpy as np
 import logging
@@ -21,8 +29,27 @@ from sklearn.preprocessing import LabelEncoder
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def run_benchmark(dataset_name, mechanism, quality, verbosity, time_limit, imputer_to_test="AutoGluon", iterations=3):
-    """
-    Runs a benchmark comparison of different imputation methods on a specific dataset and missing data mechanism.
+    """Runs a benchmark comparison of different imputation methods.
+
+    This function loads a specified dataset, introduces missing values using a
+    chosen mechanism, and then evaluates the performance of various imputation
+    methods against the original data.
+
+    Args:
+        dataset_name (str): The name of the dataset to use for the benchmark.
+            Available options are "Titanic", "Adult", "Abalone", and
+            "Breast Cancer".
+        mechanism (str): The missing data mechanism to apply. Can be "MCAR",
+            "MAR", or "MNAR".
+        quality (str): The quality preset for the AutoGluon-based imputers.
+        verbosity (int): The verbosity level for the AutoGluon-based imputers.
+        time_limit (int): The time limit in seconds for the AutoGluon-based
+            imputers.
+        imputer_to_test (str, optional): Which AutoGluon-based imputer to test.
+            Can be "AutoGluon" or "Advanced". Defaults to "AutoGluon".
+        iterations (int, optional): The number of iterations for the MICE
+            imputer. Defaults to 3, but this is a typo in the original code
+            and is not used. The `AdvancedImputer` does not use this parameter.
     """
     datasets = {
         "Titanic": load_titanic_dataset,
